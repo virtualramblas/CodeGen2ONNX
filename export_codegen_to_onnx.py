@@ -3,7 +3,7 @@ import os
 import sys
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
-codegen_dir = os.path.join(file_dir, "jaxformer")
+codegen_dir = os.path.join(file_dir, "CodeGen")
 sys.path.append(codegen_dir)
 from jaxformer.hf.sample import (
     create_model,
