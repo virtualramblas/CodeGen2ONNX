@@ -18,14 +18,10 @@ from fastgpt import (
     test_torch_inference,
 )
 
-def export(checkpoint="checkpoints/codegen-350M-mono"):
-    pad_token = 50256
-    model = create_model(ckpt=checkpoint, fp16=False)
-    model.eval()
-    tokenizer = create_custom_gpt2_tokenizer()
-    tokenizer.padding_side = "left"
-    tokenizer.pad_token = pad_token
-
+""" 
+    Function to test the original CodeGen model.
+"""
+def test_original_model(model):
     # Settings to try out the pre-trained PyTorch model
     rng_seed = 42
     rng_deterministic = True
@@ -36,23 +32,47 @@ def export(checkpoint="checkpoints/codegen-350M-mono"):
     context = "def hello_world():"
     set_seed(rng_seed, deterministic=rng_deterministic)
 
-    # Test the model
-    test_torch_inference(model)
+    is_test_successful = True
+    try:
+        # Test the model
+        test_torch_inference(model)
+    except:
+        is_test_successful = False
 
-    # Convert the original model to the ONNX format
-    onnx_path = generate_onnx_representation(model)
-    model_path = checkpoint
-    onnx_path = os.path.join(model_path, "onnx/model.onnx")
-    test_onnx_inference(onnx_path, model.config)
+    return is_test_successful
 
-    # Quantize the ONNX model
-    quantized_onnx_path = quantize(onnx_path)
-    test_onnx_inference(quantized_onnx_path, model.config)
+""" 
+    Function that converts a CodeGen pre-trained model
+    in ONNX format first and then performs quantization
+    of the latter.
+"""
+def export(checkpoint="checkpoints/codegen-350M-mono"):
+    pad_token = 50256
+    model = create_model(ckpt=checkpoint, fp16=False)
+    model.eval()
+    tokenizer = create_custom_gpt2_tokenizer()
+    tokenizer.padding_side = "left"
+    tokenizer.pad_token = pad_token
+
+    # Test the pre-trained model before converting it
+    if test_original_model(model):
+        # Convert the original model to the ONNX format
+        onnx_path = generate_onnx_representation(model)
+        model_path = checkpoint
+        onnx_path = os.path.join(model_path, "onnx/model.onnx")
+        test_onnx_inference(onnx_path, model.config)
+
+        # Quantize the ONNX model
+        quantized_onnx_path = quantize(onnx_path)
+        test_onnx_inference(quantized_onnx_path, model.config)
+    else:
+        print("Execution of the original model didn't complete successfully.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_path", 
-                        type=str, 
+                        type=str,
+                        required=True,
                         help="The path of the pre-trained CodeGen model to export.")
     args = parser.parse_args()
     export(args.model_path)
