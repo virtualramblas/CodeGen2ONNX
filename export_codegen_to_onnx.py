@@ -46,7 +46,9 @@ def test_original_model(model):
     in ONNX format first and then performs quantization
     of the latter.
 """
-def export(checkpoint="checkpoints/codegen-350M-mono"):
+def export(checkpoint="checkpoints/codegen-350M-mono",
+            delete_temp_model=False,
+            delete_original_model=False):
     pad_token = 50256
     model = create_model(ckpt=checkpoint, fp16=False)
     model.eval()
@@ -65,6 +67,12 @@ def export(checkpoint="checkpoints/codegen-350M-mono"):
         # Quantize the ONNX model
         quantized_onnx_path = quantize(onnx_path)
         test_onnx_inference(quantized_onnx_path, model.config)
+
+        # Delete the original and/or temporal model
+        if delete_temp_model:
+            os.remove(onnx_path)
+        if delete_original_model:
+            os.remove(os.path.join(model_path, "pytorch_model.bin"))
     else:
         print("Execution of the original model didn't complete successfully.")
 
@@ -74,5 +82,13 @@ if __name__ == "__main__":
                         type=str,
                         required=True,
                         help="The path of the pre-trained CodeGen model to export.")
+    parser.add_argument("--delete_temp_model", 
+                        type=str,
+                        default=True,
+                        help="If True, delete the temporary ONNX model (before quantization).")
+    parser.add_argument("--delete_original_model", 
+                        type=str,
+                        default=False,
+                        help="If True, delete the original CodeGen model.")
     args = parser.parse_args()
-    export(args.model_path)
+    export(args.model_path, args.delete_temp_model, args.delete_original_model)
