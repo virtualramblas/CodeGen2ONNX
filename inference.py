@@ -2,12 +2,12 @@ import argparse
 import os
 import sys
 from fastgpt import CausalLMModelForOnnxGeneration
-from jaxformer.hf.sample import create_custom_gpt2_tokenizer
-from jaxformer.hf.codegen.configuration_codegen import CodeGenConfig
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
 codegen_dir = os.path.join(file_dir, "CodeGen")
 sys.path.append(codegen_dir)
+from jaxformer.hf.sample import create_custom_gpt2_tokenizer
+from jaxformer.hf.codegen.configuration_codegen import CodeGenConfig
 
 """
     A function to get the tokenizer for a given CodeGen model.
@@ -27,6 +27,7 @@ def get_codegen_model_tokenizer(model_name="codegen-350M-mono", threads=1):
     Generates Python code starting from a given prompt in natural language (English).
 """
 def generate_code(args):
+    model, tokenizer = get_codegen_model_tokenizer()
     input_ids = tokenizer(
             args.prompt, return_tensors="pt", add_special_tokens=False
         ).input_ids
