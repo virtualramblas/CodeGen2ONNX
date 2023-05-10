@@ -7,4 +7,6 @@ Porting the CodeGen Language Model to ONNX format.
 ### Why this repo?
 This repo was born following a need to generate Python code starting from natural language using an Open Source model such as CodeGen in environments having computational power constraints.   
   
-*** Code Coming soon! ***   
+## Code Folders
+* *fastgpt*: ONNX conversion and quantization through the *fastgpt* library.
+* *transformers*: ONNX conversion and quantization through the :hugs: Hugging Face's *Transformers* library.   
